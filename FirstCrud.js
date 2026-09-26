@@ -57,6 +57,39 @@ app.post('/tasks', (req, res) => {
 
 
 
+//stage 4: Update and delete
+
+app.put('/tasks/:id', (req, res) => {
+  const taskId = parseInt(req.params.id);
+  const task = tasks.find(t => t.id === taskId);
+  if (!task) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+
+
+  if (!req.body || Object.keys(req.body).length === 0) {
+    return res.status(400).json({
+      error: 'Request body cannot be empty'
+    });
+  }
+
+
+  const { title, done } = req.body;
+  if (title !== undefined) task.title = title;
+  if (done !== undefined) task.done = done;
+  res.json(task);
+});
+
+app.delete('/tasks/:id', (req, res) => {
+  const taskId = parseInt(req.params.id);
+  const taskIndex = tasks.findIndex(t => t.id === taskId);
+  if (taskIndex === -1) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+  tasks.splice(taskIndex, 1);
+  res.status(200).json({ message: 'Task deleted' });
+});
+
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
 });
