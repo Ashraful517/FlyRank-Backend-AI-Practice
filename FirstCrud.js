@@ -99,11 +99,6 @@ app.delete('/tasks/:id', (req, res) => {
 
 
 
-// stage 5: Swagger UI 
-
-
-
-
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
