@@ -1,6 +1,11 @@
 const express = require('express');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./openapi.json');
+
 const app = express();
-app.use(express.json()); 
+app.use(express.json());
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 const port = 3000;
 
 
@@ -89,6 +94,16 @@ app.delete('/tasks/:id', (req, res) => {
   tasks.splice(taskIndex, 1);
   res.status(200).json({ message: 'Task deleted' });
 });
+
+
+
+
+
+// stage 5: Swagger UI 
+
+
+
+
 
 app.get('/health', (req, res) => {
   res.json({ status: 'OK' });
