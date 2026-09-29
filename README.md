@@ -238,17 +238,19 @@ curl -i http://localhost:3000/
 
 Example output:
 
-```text
+PS C:\Users\ashra\OneDrive\Desktop\BackEnd AI Eng> curl.exe -i http://localhost:3000/
 HTTP/1.1 200 OK
+X-Powered-By: Express
 Content-Type: text/html; charset=utf-8
 Content-Length: 12
+ETag: W/"c-Lve95gjOVATpfV8EL5X4nxwjKHE"
+Date: Tue, 29 Sep 2026 10:42:42 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
 
 Hello World!
-```
 
 ## Project Structure
-
-```text
 .
 ├── FirstCrud.js
 ├── openapi.json
@@ -256,7 +258,7 @@ Hello World!
 ├── package-lock.json
 ├── README.md
 └── .gitignore
-```
+
 
 ## Author
 `Ashraful Alam Chowdhury`
