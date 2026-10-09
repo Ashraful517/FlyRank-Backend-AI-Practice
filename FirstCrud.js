@@ -1,7 +1,7 @@
 const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./openapi.json');
-
+const db = require('./database');
 const app = express();
 app.use(express.json());
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -23,25 +23,39 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.get('/task', (req, res) => {
-  res.json(data);
-});
-
-
+// GET all tasks from SQLite
 app.get('/tasks', (req, res) => {
-  res.json(tasks);
+  const tasks = db.prepare(
+    'SELECT id, title, done FROM tasks ORDER BY id'
+  ).all();
+
+  // Convert SQLite's 0/1 values into JavaScript booleans
+  const formattedTasks = tasks.map(task => ({
+    ...task,
+    done: Boolean(task.done)
+  }));
+
+  res.json(formattedTasks);
 });
 
+
+// GET a single task by ID from SQLite
 app.get('/tasks/:id', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const task = tasks.find(t => t.id === taskId);
+  const task = db.prepare(
+    'SELECT id, title, done FROM tasks WHERE id = ?'
+  ).get(req.params.id);
+
   if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
+    return res.status(404).json({
+      error: 'Task not found'
+    });
   }
-  res.json(task);
+
+  res.json({
+    ...task,
+    done: Boolean(task.done)
+  });
 });
-
-
 
 //stage 3:
 
