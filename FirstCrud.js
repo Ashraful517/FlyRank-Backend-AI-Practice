@@ -59,21 +59,41 @@ app.get('/tasks/:id', (req, res) => {
 
 //stage 3:
 
+
 app.post('/tasks', (req, res) => {
-    const {title} = req.body;
-  if (!title) {
-    return res.status(400).json({ error: 'Title is required' });
-  };
+  const { title } = req.body;
 
-  const newTask = {
-    id: tasks.length + 1,
-    title: req.body.title,
-    done: false
-  };
-  tasks.push(newTask);
-  res.status(201).json(newTask);
+  // Validate the title
+  if (typeof title !== 'string' || !title.trim()) {
+    return res.status(400).json({
+      error: 'Title is required'
+    });
+  }
+
+  try {
+    const result = db.prepare(
+      'INSERT INTO tasks (title, done) VALUES (?, ?)'
+    ).run(title.trim(), 0);
+    console.log('Inserted task ID:', result.lastInsertRowid);
+    console.log('Tasks currently in database:',
+    db.prepare('SELECT * FROM tasks').all()
+    );
+    const newTask = db.prepare(
+      'SELECT id, title, done FROM tasks WHERE id = ?'
+    ).get(result.lastInsertRowid);
+
+    res.status(201).json({
+      ...newTask,
+      done: Boolean(newTask.done)
+    });
+  } catch (error) {
+    console.error('Error creating task:', error);
+
+    res.status(500).json({
+      error: 'Failed to create task'
+    });
+  }
 });
-
 
 
 //stage 4: Update and delete
@@ -120,4 +140,5 @@ app.get('/health', (req, res) => {
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
+  
 });

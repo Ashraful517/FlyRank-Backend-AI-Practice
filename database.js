@@ -6,6 +6,7 @@ const path = require('path');
 const dbPath = path.join(__dirname, 'tasks.db');
 
 const db = new Database(dbPath);
+console.log('Database file:', dbPath);
 
 // Create the tasks table if it doesn't exist.
 db.exec(`
