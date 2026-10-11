@@ -11,13 +11,6 @@ const port = 3000;
 
 
 
-
-let tasks = [
-  { id: 1, title: "Learn Express basics", done: false },
-  { id: 2, title: "Build a REST API", done: true },
-  { id: 3, title: "Test endpoints with Postman", done: false }
-];
-
 let data = [{"name": "Task API", "version":"1.0", "endpoint":["/tasks"]}];
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -61,8 +54,10 @@ app.get('/tasks/:id', (req, res) => {
 
 
 app.post('/tasks', (req, res) => {
-  const { title } = req.body;
+  console.log('Content-Type:', req.headers['content-type']);
+  console.log('Request body:', req.body);
 
+  const { title } = req.body || {};
   // Validate the title
   if (typeof title !== 'string' || !title.trim()) {
     return res.status(400).json({
@@ -98,35 +93,101 @@ app.post('/tasks', (req, res) => {
 
 //stage 4: Update and delete
 
+
 app.put('/tasks/:id', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const task = tasks.find(t => t.id === taskId);
-  if (!task) {
-    return res.status(404).json({ error: 'Task not found' });
-  }
+  const taskId = Number(req.params.id);
+  const { title, done } = req.body || {};
 
-
-  if (!req.body || Object.keys(req.body).length === 0) {
+  // Validate the task ID
+  if (!Number.isInteger(taskId) || taskId <= 0) {
     return res.status(400).json({
-      error: 'Request body cannot be empty'
+      error: 'Invalid task ID'
     });
   }
 
+  // Validate the request body
+  if (
+    title === undefined &&
+    done === undefined
+  ) {
+    return res.status(400).json({
+      error: 'Provide a title or done field'
+    });
+  }
 
-  const { title, done } = req.body;
-  if (title !== undefined) task.title = title;
-  if (done !== undefined) task.done = done;
-  res.json(task);
+  if (
+    title !== undefined &&
+    (typeof title !== 'string' || !title.trim())
+  ) {
+    return res.status(400).json({
+      error: 'Title must be a non-empty string'
+    });
+  }
+
+  if (done !== undefined && typeof done !== 'boolean') {
+    return res.status(400).json({
+      error: 'Done must be true or false'
+    });
+  }
+
+  // Find the task in SQLite
+  const task = db.prepare(
+    'SELECT id, title, done FROM tasks WHERE id = ?'
+  ).get(taskId);
+
+  if (!task) {
+    return res.status(404).json({
+      error: 'Task not found'
+    });
+  }
+
+  // Keep existing values for fields not provided
+  const updatedTitle =
+    title !== undefined ? title.trim() : task.title;
+
+  const updatedDone =
+    done !== undefined ? Number(done) : task.done;
+
+  // Update the task in SQLite
+  db.prepare(
+    'UPDATE tasks SET title = ?, done = ? WHERE id = ?'
+  ).run(updatedTitle, updatedDone, taskId);
+
+  // Read the updated task
+  const updatedTask = db.prepare(
+    'SELECT id, title, done FROM tasks WHERE id = ?'
+  ).get(taskId);
+
+  res.json({
+    ...updatedTask,
+    done: Boolean(updatedTask.done)
+  });
 });
 
+
+
 app.delete('/tasks/:id', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const taskIndex = tasks.findIndex(t => t.id === taskId);
-  if (taskIndex === -1) {
-    return res.status(404).json({ error: 'Task not found' });
+  const taskId = Number(req.params.id);
+
+  if (!Number.isInteger(taskId) || taskId <= 0) {
+    return res.status(400).json({
+      error: 'Invalid task ID'
+    });
   }
-  tasks.splice(taskIndex, 1);
-  res.status(200).json({ message: 'Task deleted' });
+
+  const result = db.prepare(
+    'DELETE FROM tasks WHERE id = ?'
+  ).run(taskId);
+
+  if (result.changes === 0) {
+    return res.status(404).json({
+      error: 'Task not found'
+    });
+  }
+
+  res.json({
+    message: 'Task deleted successfully'
+  });
 });
 
 
