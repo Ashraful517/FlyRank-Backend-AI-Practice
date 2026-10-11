@@ -1,110 +1,125 @@
-# Task API
+# Task API — SQLite Database
 
-A simple REST API built with **Node.js** and **Express.js** for managing tasks.
+A simple REST API built with Node.js, Express, and SQLite. This project demonstrates CRUD operations (Create, Read, Update, and Delete) using a persistent database.
 
-The API supports basic CRUD operations:
+## Features
 
-* Create a task
-* Read all tasks
-* Read a single task
-* Update a task
-* Delete a task
-
-The project stores tasks in an **in-memory JavaScript array**, so the data resets whenever the server is restarted.
+- Retrieve all tasks.
+- Retrieve a single task by ID.
+- Create a new task.
+- Update an existing task.
+- Delete a task.
+- Store tasks persistently using SQLite.
+- Validate request data and return appropriate HTTP status codes.
+- Explore API documentation through Swagger UI.
 
 ## Technologies Used
 
-* Node.js
-* Express.js
-* JavaScript
-* Swagger UI
-* OpenAPI
+- Node.js
+- Express.js
+- SQLite
+- better-sqlite3
+- Swagger UI
+
+## Database
+
+This project uses SQLite to store task information in a local database file named `tasks.db`.
+
+The database file is created in the project directory by `database.js`. The `tasks` table is created automatically if it does not exist. Three example tasks are inserted when the table is empty.
+
+### Table Structure
+
+| Column | Type    | Description                   |
+|--------|---------|-------------------------------|
+| `id`   | INTEGER | Primary key for each task     |
+| `title`| TEXT    | Task title                    |
+| `done` | BOOLEAN | Whether the task is completed |
+
+SQLite stores Boolean values as integers: `0` represents false and `1` represents true.
+
+### Why SQLite?
+
+SQLite is lightweight, requires no separate database server, and stores data in a local file. Unlike an in-memory JavaScript array, SQLite preserves task data when the Node.js server restarts.
 
 ## Installation and Setup
 
-### 1. Clone the repository
+1. Clone this repository:
 
-```bash
-git clone (https://github.com/Ashraful517/FlyRank-Backend-AI-Practice)
-```
+   ```bash
+   git clone https://github.com/Ashraful517/FlyRank-Backend-AI-Practice.git
+   ```
 
-### 2. Open the project folder
+2. Enter the project directory containing `FirstCrud.js`:
 
-```bash
-cd C:\Users\ashra\OneDrive\Desktop\BackEnd AI Eng
-```
+   ```bash
+   cd "BackEnd AI Eng"
+   ```
 
-### 3. Install dependencies
+   If you cloned the repository directly into a different directory, navigate to that directory instead.
 
-```bash
-npm install
-```
+3. Install dependencies:
 
-### 4. Start the server
+   ```bash
+   npm install
+   ```
 
-```bash
-node FirstCrud.js
-```
+4. Start the API:
 
-The server will run at:
+   ```bash
+   node FirstCrud.js
+   ```
 
-```text
-http://localhost:3000
-```
+   If Nodemon is installed and configured, you can also start it with your configured Nodemon command.
+
+5. Open the API at:
+
+   `http://localhost:3000`
 
 ## API Endpoints
 
-| Method | Endpoint     | Description                          | Success Status |
-| ------ | ------------ | ------------------------------------ | -------------- |
-| GET    | `/`          | Returns a welcome message            | 200            |
-| GET    | `/tasks`     | Returns all tasks                    | 200            |
-| GET    | `/tasks/:id` | Returns a single task by ID          | 200            |
-| POST   | `/tasks`     | Creates a new task                   | 201            |
-| PUT    | `/tasks/:id` | Updates an existing task             | 200            |
-| DELETE | `/tasks/:id` | Deletes a task by ID                 | 200            |
-| GET    | `/health`    | Checks whether the server is running | 200            |
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/tasks` | Retrieve all tasks |
+| GET | `/tasks/:id` | Retrieve a task by ID |
+| POST | `/tasks` | Create a task |
+| PUT | `/tasks/:id` | Update a task |
+| DELETE | `/tasks/:id` | Delete a task |
+| GET | `/health` | Check API health |
 
-## Task Format
+### Example: Create a Task
 
-Each task contains three properties:
+**Request**
 
-```json
-{
-  "id": 1,
-  "title": "Learn Express basics",
-  "done": false
-}
-```
+`POST /tasks`
 
-* `id` — unique task ID
-* `title` — task description
-* `done` — whether the task is completed
-
-## Create a Task
-
-### POST `/tasks`
-
-Request body:
+Content-Type: `application/json`
 
 ```json
 {
-  "title": "Buy milk"
+  "title": "Learn SQLite"
 }
 ```
 
-Example response:
+A successful request returns HTTP `201 Created`.
+
+### Example: Update a Task
+
+**Request**
+
+`PUT /tasks/1`
 
 ```json
 {
-  "id": 4,
-  "title": "Buy milk",
-  "done": false
+  "title": "Learn SQLite properly",
+  "done": true
 }
 ```
 
-## Get All Tasks
+### Example: Retrieve All Tasks
 
-### GET `/tasks`
+**Request**
+
+`GET /tasks`
 
 Example response:
 
@@ -112,154 +127,68 @@ Example response:
 [
   {
     "id": 1,
-    "title": "Learn Express basics",
-    "done": false
-  },
-  {
-    "id": 2,
-    "title": "Build a REST API",
-    "done": true
-  },
-  {
-    "id": 3,
-    "title": "Test endpoints with Postman",
+    "title": "Learn SQLite",
     "done": false
   }
 ]
 ```
 
-## Get One Task
+The returned task IDs and data depend on the current database contents.
 
-### GET `/tasks/:id`
+## Example SQL Queries
 
-Example:
+Display all tasks:
 
-```text
-GET /tasks/1
+```sql
+SELECT * FROM tasks;
 ```
 
-Response:
+Display completed tasks:
 
-```json
-{
-  "id": 1,
-  "title": "Learn Express basics",
-  "done": false
-}
+```sql
+SELECT * FROM tasks WHERE done = 1;
 ```
 
-If the task does not exist, the API returns a `404` response.
+Count the total number of tasks:
 
-Example:
-
-```json
-{
-  "error": "Task 99 not found"
-}
+```sql
+SELECT COUNT(*) FROM tasks;
 ```
 
-## Update a Task
+Mark all tasks as completed:
 
-### PUT `/tasks/:id`
-
-Example:
-
-```text
-PUT /tasks/1
+```sql
+UPDATE tasks SET done = 1;
 ```
 
-Request body:
+Delete completed tasks:
 
-```json
-{
-  "title": "Learn Express",
-  "done": true
-}
+```sql
+DELETE FROM tasks WHERE done = 1;
 ```
 
-## Delete a Task
-
-### DELETE `/tasks/:id`
-
-Example:
-
-```text
-DELETE /tasks/1
-```
-
-Response:
-
-```json
-{
-  "message": "Task deleted"
-}
-```
-
-## Health Check
-
-### GET `/health`
-
-Response:
-
-```json
-{
-  "status": "OK"
-}
-```
+**Note:** The update and delete queries modify the database. Use them carefully.
 
 ## Swagger API Documentation
 
-Interactive Swagger UI is available at:
+If Swagger UI is configured in the application, open:
 
-```text
-http://localhost:3000/docs
-```
+`http://localhost:3000/docs`
 
-Swagger UI provides documentation for all task endpoints and allows the API to be tested directly using the **Try it out** button.
+Use this page to explore the documented API endpoints.
 
-### Swagger Screenshot
+## Learning Outcomes
 
-<img width="1317" height="588" alt="image" src="https://github.com/user-attachments/assets/b50e30ad-5f8f-4bec-8e30-bdf3d904b678" />
+This project demonstrates how to:
 
+- Build RESTful endpoints using Express.
+- Perform SQL CRUD operations with SQLite.
+- Validate incoming request data.
+- Handle missing tasks and invalid requests.
+- Persist data across server restarts.
 
-Place the screenshot file in the project folder and name it:
-swagger-screenshot.png
-
-
-## Testing with curl
-
-The API can also be tested using `curl`.
-
-Example:
-
-```bash
-curl -i http://localhost:3000/
-```
-
-Example output:
-
-PS C:\Users\ashra\OneDrive\Desktop\BackEnd AI Eng> curl.exe -i http://localhost:3000/
-HTTP/1.1 200 OK
-X-Powered-By: Express
-Content-Type: text/html; charset=utf-8
-Content-Length: 12
-ETag: W/"c-Lve95gjOVATpfV8EL5X4nxwjKHE"
-Date: Tue, 29 Sep 2026 10:42:42 GMT
-Connection: keep-alive
-Keep-Alive: timeout=5
-
-Hello World!
-
-## Project Structure
-```.
-├── FirstCrud.js
-├── openapi.json
-├── package.json
-├── package-lock.json
-├── README.md
-└── .gitignore
-
-```
 ## Author
-`Ashraful Alam Chowdhury`
-Built as part of a backend development practice project.
+
+Ashraful Alam Chowdhury
+
+GitHub: [Ashraful517](https://github.com/Ashraful517)
